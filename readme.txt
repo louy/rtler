@@ -17,6 +17,9 @@ RTLer, is just a simple plugin that generates the RTL stylesheet <code>rtl.css</
 = 1.0 =
 * Inital release
 
+= 1.2 =
+* Adding @meta support
+
 == Installation ==
 
 1. Download the plugin, unzip it and upload it to `/wp-content/plugins/` directory.

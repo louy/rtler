@@ -3,7 +3,7 @@
 Plugin Name: RTLer
 Description: This plugin generates the RTL stylesheet for you from your theme's 'style.css' file.
 Author: Louy Alakkad
-Version: 1.0
+Version: 1.2
 Author URI: http://louyblog.wordpress.com/
 Plugin URL: http://l0uy.wordpress.com/tag/rtler/
 */
@@ -63,6 +63,8 @@ function rtler_page() {
 				$c = fread($f, filesize($path));
 				fclose($f);
 				
+				$tortl = $c;
+				
 				// create RTL object
 				$RTLer = new RTLer;
 				
@@ -93,9 +95,10 @@ function rtler_page() {
 	
 ?>
 <div class="wrap">
+
 	<h2><?php _e('RTLer'); ?></h2>
 
-	<div style="float:right; margin: 5px;"><?php _e(sprintf( 'Version %s by', '1.0' )); ?> <a href="http://louyblog.wordpress.com/">Louy Alakkad</a></div>
+	<div style="float:right; margin: 5px;"><?php _e(sprintf( 'Version %s by', '1.2' )); ?> <a href="http://louyblog.wordpress.com/">Louy Alakkad</a></div>
 	
 	<p><?php _e(''); ?></p>
 	
@@ -165,10 +168,10 @@ function rtler_page() {
 class RTLer {
 	
 	/**
-	 * these bools are used to see if we add a (|padding-|margin-)(right|left)
-	 * 		so we add set the other direction's value to auto. if both are added then we add nothing.
+	 * these bools are used to see if we add a (|padding-|margin-|border-)(right|left) so we can
+	 * 		 set the other direction's value. if both directions are added then we add nothing.
 	 */
-	var $has = false;
+	var $has   = false;
 	var $has_p = false;
 	var $has_m = false;
 	var $has_b = false;
@@ -313,26 +316,85 @@ class RTLer {
 		 */
 		$return = array();
 		
+		// media vals
+		$is_media = false;
+		$media_selector = '';
+		$media_i = 0;
+		
 		// loop throw blocks.
 		foreach( $b as $_b ) {
 			
 			// explode to selector and code.
 			$_b = explode( '{', $_b );
 			
+			// check header to see if it's @media.
+			$h = $this->remove_comments($_b[0]);
+			
+			if( preg_match( '/@media/', $h ) ) {
+				
+				$is_media = true;
+				$media_selector = $_b[0];
+				$media_i = 0;
+				
+				array_shift($_b);
+				
+			} elseif( count($_b) == 1 && $is_media ) {
+				
+				if( $media_i ) {
+					$return = array_slice( $return, 0, -$media_i );
+					$a = array_slice( $return, -$media_i, $media_i );
+					
+					$s = '';
+					
+					// loop throw the array
+					foreach( $a as $_a ) {
+						if( $_a[1] )
+							$s .= "\n" . trim( $_a[0] ) . " {\n$_a[1]\n}\n";
+						else
+							$s .= "\n" . $_a[0];
+					}
+					
+					$return[] = array( $media_selector, $s );
+					
+				} else {
+					
+					// lets at least add the comments
+					/*
+					$c = $this->keep_comments($media_selector);
+					
+					if( !empty( $c ) ) {
+						$return[] = array( $c );
+					}
+					*/
+					
+					// or i'll keep the selector!
+					$c = $media_selector;
+					
+					if( !empty( $c ) ) {
+						$return[] = array( $c , '' );
+					}
+				}
+				
+				$is_media = false;
+				$madia_selector = '';
+				$media_i = 0;
+				
+				continue;
+			}
+			
 			// parse code
 			$t = $this->parse_block( $_b[1] );
 			
 			// add to the $return array
 			if( $t ) {
+				$media_i++;
 				$return[] = array( $_b[0], $t );
 			} else {
 				
 				//leave comments alone!
-				if( preg_match( '/\/\*([^s]|s)*\*\//', $_b[0] ) ) {
-					$a = explode( '*/', $_b[0] );
-					array_pop( $a );
-					$a = implode( '*/', $a ) . '*/';
-					$return[] = array( $a );
+				$c = $this->keep_comments($_b[0]);
+				if( !empty( $c ) ) {
+					$return[] = array( $c );
 				}
 				
 			}
@@ -343,7 +405,7 @@ class RTLer {
 		
 		// loop throw the array
 		foreach( $return as $r ) {
-			if( $r[1] )
+			if( count($r)>1 )
 				$x .= "\n" . trim( $r[0] ) . " {\n$r[1]\n}\n";
 			else
 				$x .= "\n" . $r[0];
@@ -356,6 +418,56 @@ class RTLer {
 		$x = preg_replace( '/^\n+/', '', $x );
 		
 		// Done. whew!
+		return $x;
+	}
+	
+	/**
+	 * remove the css comments from a string.
+	 */
+	function remove_comments($string) {
+		
+		// first, remove the //comments
+		$s = explode( "\n", $string );
+		$r = array();
+		foreach( $s as $_s ) {
+			$_s = trim( $_s );
+			if( substr( $_s, 0, 2 ) != '//' ) {
+				$r[] = $_s;
+			}
+		}
+		$s = implode( "\n", $r );
+		
+		// now, remove the /*comments*/
+		$s = explode( '*/', $s );
+		$r = array();
+		foreach( $s as $_s ) {
+			$t = explode( '/*', $_s );
+			if( !empty( $t[0] ) ) {
+				$r[] = $t[0];
+			}
+		}
+		
+		// and return
+		return implode( "\n", $r );
+	}
+	
+	/**
+	 * remove everything except the comments from a string.
+	 */
+	function keep_comments($string) {
+		
+		// look for /*comments*/
+		$s = explode( '*/', $string );
+		$x = '';
+		
+		foreach( $s as $_s ) {
+			$t = explode( '/*', $_s );
+			if( count( $t )>1 ) {
+				$x .= "/*{$t[1]}*/\n";
+			}
+		}
+		
+		// and return
 		return $x;
 	}
 	
