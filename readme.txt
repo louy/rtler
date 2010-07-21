@@ -4,7 +4,7 @@ Author URL: http://louyblog.wordpress.com/
 Tags: language, rtler, rtl, style, layout, theme, develop, development
 Requires at least: 2.0
 Tested up to: 3.0
-Stable tag: trunk
+Stable tag: 1.2
 
 This plugin, RTLer, generates the RTL stylesheet for you from your theme's 'style.css' or any other CSS file.
 
@@ -16,6 +16,9 @@ RTLer, is just a simple plugin that generates the RTL stylesheet <code>rtl.css</
 
 = 1.0 =
 * Inital release
+
+= 1.2 =
+* Adding @meta support
 
 == Installation ==
 
