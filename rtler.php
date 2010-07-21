@@ -11,6 +11,7 @@ Plugin URL: http://l0uy.wordpress.com/tag/rtler/
  * init RTLer by adding our page to the 'Tools' menu.
  */
 function rtler_init() {
+	load_plugin_textdomain( 'rtler', WP_PLUGIN_DIR . '/rtler/languages/' );
 	add_submenu_page( 'tools.php', 'RTLer', 'RTLer', 'edit_themes', 'rtler', 'rtler_page' );
 }
 add_action( 'admin_menu', 'rtler_init' );

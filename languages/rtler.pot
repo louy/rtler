@@ -1,0 +1,96 @@
+# Translation of the WordPress plugin RTLer 1.3 by Louy Alakkad.
+# Copyright (C) 2010 Louy Alakkad
+# This file is distributed under the same license as the RTLer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+#
+#: rtler.php:103
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RTLer 1.3\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/rtler\n"
+"POT-Creation-Date: 2010-07-21 12:34+0000\n"
+"PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: rtler.php:75
+#, php-format
+msgid "the file <code>%s</code> was not found."
+msgstr ""
+
+#: rtler.php:78
+msgid "The selected file is not a CSS file."
+msgstr ""
+
+#: rtler.php:94
+msgid "Options saved."
+msgstr ""
+
+#. #-#-#-#-#  plugin.pot (RTLer 1.3)  #-#-#-#-#
+#. Plugin Name of the plugin/theme
+#: rtler.php:99
+msgid "RTLer"
+msgstr ""
+
+#: rtler.php:111
+msgid "Theme"
+msgstr ""
+
+#: rtler.php:125
+msgid "File path"
+msgstr ""
+
+#: rtler.php:127
+msgid ""
+"must be inside the theme directory, leave blank to use <code>style.css</"
+"code>. No <code>../</code> allowed!"
+msgstr ""
+
+#: rtler.php:131
+msgid "RTLed file"
+msgstr ""
+
+#: rtler.php:134
+msgid ""
+"<strong>Note:</strong> Due to the weak CSS support, For now you need to "
+"manually remove the .alignright and .alignleft and the .fr and .fl from your "
+"rtl.css, You won&#39;t need to in the future versions. :/"
+msgstr ""
+
+#: rtler.php:140
+msgid "Generate rtl.css"
+msgstr ""
+
+#: rtler.php:144
+msgid "Or, just enter the file contents here."
+msgstr ""
+
+#: rtler.php:152
+msgid "CSS to RTL"
+msgstr ""
+
+#: rtler.php:155
+msgid "I won&#39;t validate the CSS, I don&#39;t have time to!"
+msgstr ""
+
+#: rtler.php:161
+msgid "RTL!"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"This plugin generates the RTL stylesheet for you from your theme's 'style."
+"css' file."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Louy Alakkad"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://louyblog.wordpress.com/"
+msgstr ""
