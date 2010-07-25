@@ -3,9 +3,11 @@
 Plugin Name: RTLer
 Description: This plugin generates the RTL stylesheet for you from your theme's 'style.css' file.
 Author: Louy Alakkad
-Version: 1.2
+Version: 1.5
 Author URI: http://louyblog.wordpress.com/
 Plugin URL: http://l0uy.wordpress.com/tag/rtler/
+Text Domain: rtler
+Domain Path: /languages
 */
 /**
  * init RTLer by adding our page to the 'Tools' menu.
@@ -15,14 +17,18 @@ function rtler_init() {
 }
 add_action( 'admin_menu', 'rtler_init' );
 
+// Load translations
+load_plugin_textdomain( 'rtler', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+
 /**
  * display the RTLer tool page.
  */
 function rtler_page() {
 	
-	// theme and file fields values
+	// theme, file and save fields values
 	$theme = '';
 	$file = 'style.css';
+	$save = '';
 	
 	// get themes list
 	$themes = array_merge(array(''=>array('data'=>'')),get_allowed_themes());
@@ -33,8 +39,15 @@ function rtler_page() {
 	
 	// check for submitted filename
 	if( isset( $_GET['file'] ) && $_GET['file'] ) {
-		$file = preg_replace('/\.\.[\/\\\\]/', '', $_GET['file']);
-		$file = preg_replace('/([\/\\\\])[\/\\\\]+/', '$1', $file);
+		$file = $_GET['file'];
+		$file = str_replace('\\','/',$file); // sanitize for Win32 installs
+		$file = preg_replace('|../|','/', $file); // remove any dir up string
+		$file = preg_replace('|/+|','/', $file); // remove any duplicate slash
+	}
+	
+	// check save option
+	if( isset( $_GET['save'] ) && $_GET['save'] == 'true' ) {
+		$save = true;
 	}
 	
 	// check for submitted theme
@@ -52,6 +65,9 @@ function rtler_page() {
 		
 		// file path
 		$path = dirname($dir.$file).'/'.basename($file);
+		
+		$path = str_replace('\\','/',$path); // sanitize for Win32 installs
+		$path = preg_replace('|/+|','/', $path); // remove any duplicate slash
 		
 		// check if it's a css file
 		if ( '.css' == substr( $file, strrpos( $file, '.' ) ) ) {
@@ -71,11 +87,58 @@ function rtler_page() {
 				// do our job! LOL
 				$rtled = $RTLer->parse_css($c);
 				
+				// now, save.
+				if( $save ) {
+					
+					$error = false;
+					
+					$_file = preg_match( '/^(.*\\/)?style\.css$/', $path ) ? substr($path, 0, -9) . 'rtl.css' : substr($path, 0, -4) . '-rtl.css';
+					
+					if( is_file( $_file ) ) {
+						
+						// file exists so rename it.
+						$__file = substr( $_file, 0, -4 ) . '.bak.css';
+						$__file_b = substr( $_file, 0, -4 ) . '.bak-%%.css';
+						
+						$n = 0;
+						while( is_file( $__file ) ) {
+							$__file = str_replace( '%%', $n, $__file_b );
+							$n ++;
+						}
+						
+						unset( $n );
+						
+						rename($_file, $__file) or $error = true;
+						
+						if( $error )
+							echo '<div id="message" class="error fade"><p><strong>'.sprintf(__('Error renaming <code>%s</code>, please edit manually.', 'rtler'),esc_html($_file)).'</strong></p></div>';
+					}
+					
+					if( !$error ) {
+						
+						$fp = fopen($_file, 'w');
+						
+						if( $fp ) {
+							
+							// write new file
+							fwrite( $fp, $rtled, strlen( $rtled ) );
+							fclose( $fp );
+							
+							echo '<div id="message" class="updated fade"><p><strong>'.sprintf(__('File %s saved successfuly.', 'rtler'),esc_html($_file)).'</strong></p></div>';
+							
+						} else {
+							$error = true;
+							echo '<div id="message" class="error fade"><p><strong>'.sprintf(__('Error saving <code>%s</code>, file not writable.', 'rtler'),esc_html($_file)).'</strong></p></div>';
+						}
+					}
+					
+				}
+				
 			} else {
-				echo '<div id="message" class="error fade"><p><strong>'.sprintf(__('the file <code>%s</code> was not found.'),esc_html($path)).'</strong></p></div>';
+				echo '<div id="message" class="error fade"><p><strong>'.sprintf(__('the file <code>%s</code> was not found.', 'rtler'),esc_html($path)).'</strong></p></div>';
 			}
 		} else { // not a CSS file
-			echo '<div id="message" class="error fade"><p><strong>'.__('The selected file is not a CSS file.').'</strong></p></div>';
+			echo '<div id="message" class="error fade"><p><strong>'.__('The selected file is not a CSS file.', 'rtler').'</strong></p></div>';
 		}
 		
 	} elseif( isset( $_POST['tortl'] ) && !empty( $_POST['tortl'] ) ) { // we have file content submitted
@@ -91,16 +154,16 @@ function rtler_page() {
 	}
 	
 	// TODO: allow user to save the file.
-	if ( isset( $_REQUEST['saved'] ) ) echo '<div id="message" class="updated fade"><p><strong>'.__('Options saved.', 'android').'</strong></p></div>';
+	if ( isset( $_REQUEST['saved'] ) ) echo '<div id="message" class="updated fade"><p><strong>'.__('Options saved.', 'android', 'rtler').'</strong></p></div>';
 	
 ?>
 <div class="wrap">
 
-	<h2><?php _e('RTLer'); ?></h2>
+	<h2><?php _e('RTLer', 'rtler'); ?></h2>
 
-	<div style="float:right; margin: 5px;"><?php _e(sprintf( 'Version %s by', '1.2' )); ?> <a href="http://louyblog.wordpress.com/">Louy Alakkad</a></div>
+	<div style="float:<?php echo is_rtl() ? 'left' : 'right'; ?>; margin: 5px;"><?php printf( __('Version %s by', 'rtler'), '1.5' ); ?> <a href="<?php _e('http://louyblog.wordpress.com/','rtler'	); ?>"><?php _e('Louy Alakkad','rtler'); ?></a></div>
 	
-	<p><?php _e(''); ?></p>
+	<p><?php _e('', 'rtler'); ?></p>
 	
 <form method="get" action="">
 	
@@ -108,7 +171,7 @@ function rtler_page() {
 	
 	<table class="form-table">
 		<tr valign="top">
-			<th scope="row"><label for="theme"><?php _e('Theme'); ?></label></th>
+			<th scope="row"><label for="theme"><?php _e('Theme', 'rtler'); ?></label></th>
 			<td>
 				<select name="theme" id="theme">
 					<?php
@@ -122,26 +185,31 @@ function rtler_page() {
 			</td>
 		</tr>
 		<tr valign="top">
-			<th scope="row"><label for="file"><?php _e('File path'); ?></label></th>
+			<th scope="row"><label for="file"><?php _e('File path', 'rtler'); ?></label></th>
 			<td>
-				<input name="file" type="text" value="<?php echo esc_attr($file); ?>" id="file" class="regular-text" /> <small><?php _e('must be inside the theme directory, leave blank to use <code>style.css</code>. No <code>../</code> allowed!'); ?></small>
+				<input name="file" type="text" value="<?php echo esc_attr($file); ?>" id="file" class="regular-text" /> <small><?php _e('must be inside the theme directory, leave blank to use <code>style.css</code>. No <code>../</code> allowed!', 'rtler'); ?></small>
 			</td>
 		</tr>
 		<tr valign="top">
-			<th scope="row"><label for="rtled"><?php _e('RTLed file'); ?></label></th>
+			<th scope="row"><label for="save"><?php _e('Save file', 'rtler'); ?></label></th>
+			<td>
+				<input name="save" type="checkbox" value="true" <?php echo $save ? 'checked="checked" ' : ''; ?>id="save" /> <small><?php _e('check this to automatically save the rtled file.', 'rtler'); ?></small>
+			</td>
+		</tr>
+		<tr valign="top">
+			<th scope="row"><label for="rtled"><?php _e('RTLed file', 'rtler'); ?></label></th>
 			<td>
 				<textarea rows="10" cols="50" class="large-text code" readonly="readonly" id="rtled"><?php echo esc_html($rtled); ?></textarea>
-				<small><?php _e('<strong>Note:</strong> Due to the weak CSS support, For now you need to manually remove the .alignright and .alignleft and the .fr and .fl from your rtl.css, You won&#39;t need to in the future versions. :/'); ?></small>
 			</td>
 		</tr>
 	</table>
 		
 	<p class="submit">
-		<input type="submit" class="button-primary" value="<?php _e('Generate rtl.css'); ?>" />
+		<input type="submit" class="button-primary" value="<?php _e('Generate rtl.css', 'rtler'); ?>" />
 	</p>
 </form>
 
-<p><?php _e('Or, just enter the file contents here.'); ?></p>
+<p><?php _e('Or, just enter the file contents here.', 'rtler'); ?></p>
 
 <form method="post" action="tools.php?page=rtler">
 	
@@ -149,16 +217,16 @@ function rtler_page() {
 	
 	<table class="form-table">
 		<tr valign="top">
-			<th scope="row"><label for="tortl"><?php _e('CSS to RTL'); ?></label></th>
+			<th scope="row"><label for="tortl"><?php _e('CSS to RTL', 'rtler'); ?></label></th>
 			<td>
 				<textarea rows="10" cols="50" class="large-text code" id="tortl" name="tortl"><?php echo esc_html($tortl); ?></textarea>
-				<small><?php _e('I won&#39;t validate the CSS, I don&#39;t have time to!'); ?></small>
+				<small><?php _e('I won&#39;t validate the CSS, I don&#39;t have time to!', 'rtler'); ?></small>
 			</td>
 		</tr>
 	</table>
 		
 	<p class="submit">
-		<input type="submit" class="button-primary" value="<?php _e('RTL!'); ?>" />
+		<input type="submit" class="button-primary" value="<?php _e('RTL!', 'rtler'); ?>" />
 	</p>
 </form>
 
@@ -170,6 +238,11 @@ class RTLer {
 	/**
 	 * these bools are used to see if we add a (|padding-|margin-|border-)(right|left) so we can
 	 * 		 set the other direction's value. if both directions are added then we add nothing.
+	 *
+	 * has   => right or left
+	 * has_p => padding
+	 * has_m => margin
+	 * has_b => border
 	 */
 	var $has   = false;
 	var $has_p = false;
@@ -225,27 +298,21 @@ class RTLer {
 				}
 			}
 			
-			//replace left with a TMP string.
-			$line = str_replace( 'left', 'TMP_LEFT_STR', $line );
+			// flip right snf left.
+			$line = $this->right_to_left( $line );
 			
-			// flip right to left.
-			$line = str_replace( 'right', 'left', $line );
-			
-			//flip left to right.
-			$line = str_replace( 'TMP_LEFT_STR', 'right', $line );
-			
-		} elseif( preg_match( '/(padding|margin):(([\s\t]*)([^\s\t]+)([\s\t]+)([^\s\t]+)([\s\t]+)([^\s\t]+)([\s\t]+)([^\s\t]*);)/', $line, $matches ) ) {
-			// If it's padding: 1 2 3 4; we'll flip the 2nd and the 4th.
+		} elseif( preg_match( '/(padding|margin):(([\s\t]*)([^\s\t]+)([\s\t]+)([^\s\t]+)([\s\t]+)([^\s\t]+)([\s\t]+)([^\s\t]*)([\s\t]*)(!important)?([\s\t]*);)/', $line, $matches ) ) {
+			// If it's <code>padding: 1 2 3 4;</code> we'll flip the 2nd and the 4th values.
 			
 			// if they are equal, return false.
-			if( $matches[6] == $matches[8] )
+			if( $matches[6] == $matches[10] )
 			
 				$line = false;
 				
 			else
 			
 				// now flip
-				$line = str_replace( $matches[2], $matches[3].$matches[4].$matches[5].$matches[8].$matches[7].$matches[6].$matches[9].$matches[10].';', $line );
+				$line = str_replace( $matches[2], $matches[3].$matches[4].$matches[5].$matches[10].$matches[7].$matches[8].$matches[9].$matches[6].$matches[11].$matches[11].';', $line );
 				
 		} else { // no RTL to do, return false
 			$line = false;
@@ -261,40 +328,55 @@ class RTLer {
 	 */
 	function parse_block( $block ) {
 		
+		// reset some vars
 		$this->has   = false;
 		$this->has_p = false;
 		$this->has_m = false;
 		$this->has_b = false;
 		
+		// explode to lines
 		$block = explode( ";", $block );
+		
+		// prepare return array
 		$return = array();
+		
+		// loop
 		foreach( $block as $line ) {
-			$line = preg_replace('/\/\*.*\*\//', '', $line); // remove comments
+			$line = preg_replace('/\\/\\*.*\\*\\//', '', $line); // remove comments
 			if( !$line ) continue;
 			$line = trim($line) . ';';
-			preg_replace( '/^[\s\t]*([a-z\-]+)\:[\s\t]*(.+);/', '$1: $2;', $line );
+			preg_replace( '/^[\s\t]*([a-z\-]+)\:[\s\t]*(.+)[\s\t]*;/', '$1: $2;', $line );
 			$c = $this->parse_line( $line );
 			if( $c ) {
-				$c = '	'.$c;
-				$return[] = $c;
+				$return[] = '	'.$c;
 			}
 		}
+		
+		// check for right/left
 		if( $this->has ) {
 			$t = ($this->has   === 'right' ) ? $this->has   : 'left';
 			$return[] = "\t$t: auto;";
 		}
+		
+		// check for padding
 		if( $this->has_p ) {
 			$t = ($this->has_p === 'right' ) ? $this->has_p : 'left';
 			$return[] = "\tpadding-$t: 0;";
 		}
+		
+		// check for margin
 		if( $this->has_m ) {
 			$t = ($this->has_m === 'right' ) ? $this->has_m : 'left';
 			$return[] = "\tmargin-$t: auto;";
 		}
+		
+		// check for border
 		if( $this->has_b ) {
 			$t = ($this->has_b === 'right' ) ? $this->has_b : 'left';
 			$return[] = "\tborder-$t: none;";
 		}
+		
+		// return
 		return count($return) ? implode("\n", $return) : false;
 	}
 	
@@ -380,6 +462,16 @@ class RTLer {
 				$media_i = 0;
 				
 				continue;
+			} elseif( preg_match( '/^\\.f[rl]$/', trim($h) ) ) {
+				
+				//leave comments alone!
+				$c = $this->keep_comments($_b[0]);
+				if( !empty( $c ) ) {
+					$return[] = array( $c );
+				}
+				
+				// continue
+				continue;
 			}
 			
 			// parse code
@@ -388,7 +480,7 @@ class RTLer {
 			// add to the $return array
 			if( $t ) {
 				$media_i++;
-				$return[] = array( $_b[0], $t );
+				$return[] = array( $this->right_to_left($_b[0]), $t );
 			} else {
 				
 				//leave comments alone!
@@ -399,6 +491,9 @@ class RTLer {
 				
 			}
 		}
+		
+		// add some credits
+		$return[] = array('/* '.__('Generated by the RTLer', 'rtler').' - http://wordpress.org/extend/plugins/rtler/ */');
 		
 		// return string
 		$x = '';
@@ -469,6 +564,24 @@ class RTLer {
 		
 		// and return
 		return $x;
+	}
+	
+	/**
+	 * replace "right" width "left" and vice versa
+	 */
+	function right_to_left($str) {
+		
+		// replace left with a TMP string.
+		$s = str_replace( 'left', 'TMP_LEFT_STR', $str );
+		
+		// flip right to left.
+		$s = str_replace( 'right', 'left', $s );
+		
+		// flip left to right.
+		$s = str_replace( 'TMP_LEFT_STR', 'right', $s );
+		
+		// return
+		return $s;
 	}
 	
 }
