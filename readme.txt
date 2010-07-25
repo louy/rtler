@@ -14,11 +14,11 @@ RTLer, is just a simple plugin that generates the RTL stylesheet <code>rtl.css</
 
 == Changelog ==
 
-= 1.0 =
-* Inital release
-
 = 1.2 =
 * Adding @meta support
+
+= 1.0 =
+* Inital release
 
 == Installation ==
 
