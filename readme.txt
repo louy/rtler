@@ -16,6 +16,7 @@ It automatically scans your file, reads values and adds its own if needed, you'l
 = Thanks! =
 
 I would like to thank these people for supporting me :)
+
 * <a href="http://twitter.com/nightS">@nightS</a> (Special Thanks!)
 * <a href="http://twitter.com/DrSallory">@DrSallory</a>
 * <a href="http://twitter.com/aqmme">@aqmme</a>
