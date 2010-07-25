@@ -2,7 +2,7 @@
 Contributors: louyx
 Author URL: http://louyblog.wordpress.com/
 Tags: language, rtler, rtl, style, layout, theme, develop, development
-Requires at least: 2.0
+Requires at least: 2.9
 Tested up to: 3.0
 Stable tag: trunk
 
