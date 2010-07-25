@@ -13,13 +13,13 @@ This plugin, RTLer, generates the RTL stylesheet for you from your theme's 'styl
 RTLer, is just a simple plugin that generates the RTL stylesheet <code>rtl.css</code> for you from your theme's <code>style.css</code> file.
 It automatically scans your file, reads values and adds its own if needed, you'll never need to rtl anymore.
 
-= Special thanks =
+= Thanks! =
 
 I would like to thank these people for supporting me :)
-
 * <a href="http://twitter.com/nightS">@nightS</a> (Special Thanks!)
 * <a href="http://twitter.com/DrSallory">@DrSallory</a>
 * <a href="http://twitter.com/aqmme">@aqmme</a>
+* <a href="http://twitter.com/caspereeko">@caspereeko</a>
 
 == Changelog ==
 
