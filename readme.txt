@@ -23,12 +23,6 @@ I would like to thank these people for supporting me :)
 
 == Changelog ==
 
-= 1.0 =
-* Inital release
-
-= 1.2 =
-* Adding @meta support
-
 = 1.5 =
 * Adding 'save' functionality
 * Some major and minor bug fixes
@@ -37,6 +31,12 @@ I would like to thank these people for supporting me :)
 * Auto backup old rtl.css files
 * Now checks and flips the selectors
 * Ignore .fr and .fl
+
+= 1.2 =
+* Adding @meta support
+
+= 1.0 =
+* Inital release
 
 == Installation ==
 
